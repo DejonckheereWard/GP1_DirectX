@@ -2,6 +2,7 @@
 #include "Renderer.h"
 #include "Mesh.h"
 #include "Camera.h"
+#include "Texture.h"
 
 
 Renderer::Renderer(SDL_Window* pWindow):
@@ -28,16 +29,35 @@ Renderer::Renderer(SDL_Window* pWindow):
 
 
 	// Init mesh
+	//std::vector<Vertex> vertices{
+	//	{{0.0f, 3.0f, 2.0f}, {1.f, 0.f, 0.f}},
+	//	{{3.0f, -3.0f, 2.0f}, {0.f, 0.f, 1.f}},
+	//	{{-3.0f, -3.0f, 2.0f}, {0.f, 1.f, 0.f}},
+	//};
+
 	std::vector<Vertex> vertices{
-		{{0.0f, 3.0f, 2.0f}, {1.f, 0.f, 0.f}},
-		{{3.0f, -3.0f, 2.0f}, {0.f, 0.f, 1.f}},
-		{{-3.0f, -3.0f, 2.0f}, {0.f, 1.f, 0.f}},
+		Vertex{{ -3,3,-2 }, {0, 0}},
+		Vertex{{ 0,3,-2 },	{.5f, 0}},
+		Vertex{{ 3,3,-2 },	{1, 0}},
+		Vertex{{ -3,0,-2 },	{0, .5f}},
+		Vertex{{ 0,0,-2 },	{.5f, .5f}},
+		Vertex{{ 3,0,-2 },	{1, .5f}},
+		Vertex{{ -3,-3,-2 },{ 0, 1 }},
+		Vertex{{ 0,-3,-2 },	{.5f, 1}},
+		Vertex{{ 3,-3,-2 },	{1, 1}},
 	};
 
 
-	std::vector<uint32_t> indices{ 0, 1, 2 };
+	std::vector<uint32_t> indices{
+		3,0,1,   1,4,3,   4,1,2,
+		2,5,4,   6,3,4,   4,7,6,
+		7,4,5,   5,8,7
+	};
 
 	m_pMesh = new Mesh{ m_pDevice, vertices, indices };
+
+	m_pDiffuseTexture = Texture::LoadFromFile(m_pDevice, "./Resources/uv_grid_2.png");
+	m_pMesh->SetDiffuseMap(m_pDiffuseTexture);
 }
 
 Renderer::~Renderer()
@@ -62,6 +82,7 @@ Renderer::~Renderer()
 	}
 
 	delete m_pCamera;
+	delete m_pDiffuseTexture;
 
 }
 
@@ -87,6 +108,28 @@ void Renderer::Render() const
 
 	// SWAP THE BACKBUFFER / PRESENT
 	m_pSwapChain->Present(0, 0);
+}
+
+void Renderer::ToggleFilterMethod()
+{
+	// Fancy thing to toggle / go through the filtermethods 1 by 1
+	m_FilterMethod = FilterMethod((int(m_FilterMethod) + 1) % (int(FilterMethod::Anisotropic) + 1));
+
+	switch(m_FilterMethod)
+	{
+		case Renderer::FilterMethod::Point:
+			std::wcout << "FilterMethod: Point\n";
+			break;
+		case Renderer::FilterMethod::Linear:
+			std::wcout << "FilterMethod: Linear\n";
+			break;
+		case Renderer::FilterMethod::Anisotropic:
+			std::wcout << "FilterMethod: Anisotropic\n";
+			break;
+		default:
+			std::wcout << "FilterMethod: ERROR - INVALID\n";
+			break;
+	}
 }
 
 HRESULT Renderer::InitializeDirectX()

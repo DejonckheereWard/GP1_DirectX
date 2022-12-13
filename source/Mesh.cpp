@@ -19,8 +19,8 @@ Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex>& vertices, const std
 	vertexDesc[0].AlignedByteOffset = 0;
 	vertexDesc[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
-	vertexDesc[1].SemanticName = "COLOR";
-	vertexDesc[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+	vertexDesc[1].SemanticName = "TEXCOORD";
+	vertexDesc[1].Format = DXGI_FORMAT_R32G32_FLOAT;
 	vertexDesc[1].AlignedByteOffset = 12;
 	vertexDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
@@ -77,6 +77,9 @@ Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex>& vertices, const std
 
 Mesh::~Mesh()
 {
+	m_pVertexBuffer->Release();
+	m_pIndexBuffer->Release();
+	m_pInputLayout->Release();
 	delete m_pEffect;
 }
 
@@ -107,4 +110,9 @@ void Mesh::Render(ID3D11DeviceContext* pDeviceContext, Matrix& worldViewProjMatr
 		m_pTechnique->GetPassByIndex(p)->Apply(0, pDeviceContext);
 		pDeviceContext->DrawIndexed(m_NumIndices, 0, 0);
 	}
+}
+
+void Mesh::SetDiffuseMap(Texture* texture)
+{
+	m_pEffect->SetDiffuseMap(texture);
 }

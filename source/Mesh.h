@@ -4,6 +4,7 @@
 using namespace dae;
 
 class Effect;
+class Texture;
 
 struct Vertex
 {
@@ -30,6 +31,8 @@ public:
 	Mesh& operator=(Mesh&&) = delete;
 
 	void Render(ID3D11DeviceContext* pDeviceContext, Matrix& worldViewProjMatrix);
+
+	void SetDiffuseMap(Texture* texture);
 
 private:
 	Effect* m_pEffect;

@@ -33,7 +33,7 @@ int main(int argc, char* args[])
 		SDL_WINDOWPOS_UNDEFINED,
 		width, height, 0);
 
-	if (!pWindow)
+	if(!pWindow)
 		return 1;
 
 	//Initialize "framework"
@@ -44,22 +44,27 @@ int main(int argc, char* args[])
 	pTimer->Start();
 	float printTimer = 0.f;
 	bool isLooping = true;
-	while (isLooping)
+	while(isLooping)
 	{
 		//--------- Get input events ---------
 		SDL_Event e;
-		while (SDL_PollEvent(&e))
+		while(SDL_PollEvent(&e))
 		{
-			switch (e.type)
+			switch(e.type)
 			{
-			case SDL_QUIT:
-				isLooping = false;
-				break;
-			case SDL_KEYUP:
-				//Test for a key
-				//if (e.key.keysym.scancode == SDL_SCANCODE_X)
-				break;
-			default: ;
+				case SDL_QUIT:
+					isLooping = false;
+					break;
+				case SDL_KEYUP:
+					//Test for a key
+					//if (e.key.keysym.scancode == SDL_SCANCODE_X)
+					if(e.key.keysym.scancode == SDL_SCANCODE_F2)
+					{
+						pRenderer->ToggleFilterMethod();
+					}
+
+					break;
+				default:;
 			}
 		}
 
@@ -72,7 +77,7 @@ int main(int argc, char* args[])
 		//--------- Timer ---------
 		pTimer->Update();
 		printTimer += pTimer->GetElapsed();
-		if (printTimer >= 1.f)
+		if(printTimer >= 1.f)
 		{
 			printTimer = 0.f;
 			std::cout << "dFPS: " << pTimer->GetdFPS() << std::endl;

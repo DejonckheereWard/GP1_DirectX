@@ -7,9 +7,17 @@ struct SDL_Surface;
 class Mesh;
 
 class Camera;
+class Texture;
 class Renderer final
 {
 public:
+	enum class FilterMethod
+	{
+		Point,
+		Linear,
+		Anisotropic
+	};
+
 	Renderer(SDL_Window* pWindow);
 	~Renderer();
 
@@ -20,6 +28,8 @@ public:
 
 	void Update(const Timer* pTimer);
 	void Render() const;
+
+	void ToggleFilterMethod();
 
 private:
 	SDL_Window* m_pWindow{};
@@ -45,5 +55,8 @@ private:
 
 	Mesh* m_pMesh;
 	Camera* m_pCamera;
+	Texture* m_pDiffuseTexture;
+
+	FilterMethod m_FilterMethod;
 
 };
