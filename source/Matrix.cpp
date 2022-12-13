@@ -7,8 +7,9 @@
 #include "MathHelpers.h"
 #include <cmath>
 
-namespace dae {
-	Matrix::Matrix(const Vector3& xAxis, const Vector3& yAxis, const Vector3& zAxis, const Vector3& t) :
+namespace dae
+{
+	Matrix::Matrix(const Vector3& xAxis, const Vector3& yAxis, const Vector3& zAxis, const Vector3& t):
 		Matrix({ xAxis, 0 }, { yAxis, 0 }, { zAxis, 0 }, { t, 1 })
 	{
 	}
@@ -75,9 +76,9 @@ namespace dae {
 	const Matrix& Matrix::Transpose()
 	{
 		Matrix result{};
-		for (int r{ 0 }; r < 4; ++r)
+		for(int r{ 0 }; r < 4; ++r)
 		{
-			for (int c{ 0 }; c < 4; ++c)
+			for(int c{ 0 }; c < 4; ++c)
 			{
 				result[r][c] = data[c][r];
 			}
@@ -123,7 +124,7 @@ namespace dae {
 		data[0] = Vector4{ r0.x, r1.x, r2.x, 0.f };
 		data[1] = Vector4{ r0.y, r1.y, r2.y, 0.f };
 		data[2] = Vector4{ r0.z, r1.z, r2.z, 0.f };
-		data[3] = {-Vector3::Dot(b, t),Vector3::Dot(a, t),-Vector3::Dot(d, s),Vector3::Dot(c, s) };
+		data[3] = { -Vector3::Dot(b, t),Vector3::Dot(a, t),-Vector3::Dot(d, s),Vector3::Dot(c, s) };
 
 		return *this;
 	}
@@ -146,14 +147,23 @@ namespace dae {
 
 	Matrix Matrix::CreateLookAtLH(const Vector3& origin, const Vector3& forward, const Vector3& up)
 	{
-		assert(false && "Not Implemented");
-		return {};
+		const Vector3 right = Vector3::Cross(Vector3::UnitY, forward).Normalized();
+		return {
+			Vector4(right, 0),
+			Vector4(up, 0),
+			Vector4(forward, 0),
+			Vector4(origin, 1)
+		};
 	}
 
 	Matrix Matrix::CreatePerspectiveFovLH(float fov, float aspect, float zn, float zf)
 	{
-		assert(false && "Not Implemented");
-		return {};
+		return {
+			{ 1.0f / (aspect * fov),	0.0f,		0.0f,					0.0f },
+			{ 0.0f,						1.0f / fov,	0.0f,					0.0f },
+			{ 0.0f,						0.0f,		zf / (zf - zn),			1.0f },
+			{ 0.0f,						0.0f,		-(zf * zn) / (zf - zn),	0.0f }
+		};
 	}
 
 	Vector3 Matrix::GetAxisX() const
@@ -254,9 +264,9 @@ namespace dae {
 		Matrix result{};
 		Matrix m_transposed = Transpose(m);
 
-		for (int r{ 0 }; r < 4; ++r)
+		for(int r{ 0 }; r < 4; ++r)
 		{
-			for (int c{ 0 }; c < 4; ++c)
+			for(int c{ 0 }; c < 4; ++c)
 			{
 				result[r][c] = Vector4::Dot(data[r], m_transposed[c]);
 			}
@@ -270,9 +280,9 @@ namespace dae {
 		Matrix copy{ *this };
 		Matrix m_transposed = Transpose(m);
 
-		for (int r{ 0 }; r < 4; ++r)
+		for(int r{ 0 }; r < 4; ++r)
 		{
-			for (int c{ 0 }; c < 4; ++c)
+			for(int c{ 0 }; c < 4; ++c)
 			{
 				data[r][c] = Vector4::Dot(copy[r], m_transposed[c]);
 			}

@@ -29,7 +29,7 @@ public:
 	Mesh(Mesh&&) = delete;
 	Mesh& operator=(Mesh&&) = delete;
 
-	void Render(ID3D11DeviceContext* pDeviceContext);
+	void Render(ID3D11DeviceContext* pDeviceContext, Matrix& worldViewProjMatrix);
 
 private:
 	Effect* m_pEffect;

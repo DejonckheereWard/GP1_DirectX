@@ -6,6 +6,7 @@ class Mesh;
 
 namespace dae
 {
+	class Camera;
 	class Renderer final
 	{
 	public:
@@ -43,6 +44,7 @@ namespace dae
 		ID3D11RenderTargetView* m_pRenderTargetView;
 
 		Mesh* m_pMesh;
+		Camera* m_pCamera;
 
 	};
 }

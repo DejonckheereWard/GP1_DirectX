@@ -1,4 +1,5 @@
 #pragma once
+#include "Matrix.h"
 class Effect final
 {
 public:
@@ -12,6 +13,7 @@ public:
 
 	ID3DX11Effect* GetEffect() const { return m_pEffect; };
 	ID3DX11EffectTechnique* GetTechnique() const { return m_pTechnique; };
+	ID3DX11EffectMatrixVariable* GetMatrixVariable() const { return m_pMatWorldViewProjVariable; };
 
 
 
@@ -20,6 +22,7 @@ private:
 
 	ID3DX11Effect* m_pEffect;
 	ID3DX11EffectTechnique* m_pTechnique;
+	ID3DX11EffectMatrixVariable* m_pMatWorldViewProjVariable;
 
 
 

@@ -80,7 +80,7 @@ Mesh::~Mesh()
 	delete m_pEffect;
 }
 
-void Mesh::Render(ID3D11DeviceContext* pDeviceContext)
+void Mesh::Render(ID3D11DeviceContext* pDeviceContext, Matrix& worldViewProjMatrix)
 {
 	// 1. Set Primitive Topolgy
 	pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -97,6 +97,9 @@ void Mesh::Render(ID3D11DeviceContext* pDeviceContext)
 	pDeviceContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 	// 5. Draw
+	// We reinterpret the pointer, not the object itself?
+	m_pEffect->GetMatrixVariable()->SetMatrix(reinterpret_cast<float*>(&worldViewProjMatrix));
+
 	D3DX11_TECHNIQUE_DESC techDesc{};
 	m_pTechnique->GetDesc(&techDesc);
 	for(UINT p{ 0 }; p < techDesc.Passes; ++p)
