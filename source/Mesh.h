@@ -9,13 +9,13 @@ class Texture;
 struct Vertex
 {
 	Vector3 position{};
-	ColorRGB color{};
+	Vector2 uv{};
 };
 
 struct Vertex_Out
 {
 	Vector4 position{};
-	ColorRGB color{};
+	Vector2 uv{};
 };
 
 

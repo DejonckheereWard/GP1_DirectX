@@ -3,6 +3,7 @@
 #include "Mesh.h"
 #include "Camera.h"
 #include "Texture.h"
+#include "Utils.h"
 
 
 Renderer::Renderer(SDL_Window* pWindow):
@@ -37,27 +38,28 @@ Renderer::Renderer(SDL_Window* pWindow):
 	//};
 
 	std::vector<Vertex> vertices{
-		Vertex{{ -3,3,-2 }, {0, 0}},
-		Vertex{{ 0,3,-2 },	{.5f, 0}},
-		Vertex{{ 3,3,-2 },	{1, 0}},
-		Vertex{{ -3,0,-2 },	{0, .5f}},
-		Vertex{{ 0,0,-2 },	{.5f, .5f}},
-		Vertex{{ 3,0,-2 },	{1, .5f}},
-		Vertex{{ -3,-3,-2 },{ 0, 1 }},
-		Vertex{{ 0,-3,-2 },	{.5f, 1}},
-		Vertex{{ 3,-3,-2 },	{1, 1}},
+		//Vertex{{ -3,3,-2 }, {0, 0}},
+		//Vertex{{ 0,3,-2 },	{.5f, 0}},
+		//Vertex{{ 3,3,-2 },	{1, 0}},
+		//Vertex{{ -3,0,-2 },	{0, .5f}},
+		//Vertex{{ 0,0,-2 },	{.5f, .5f}},
+		//Vertex{{ 3,0,-2 },	{1, .5f}},
+		//Vertex{{ -3,-3,-2 },{ 0, 1 }},
+		//Vertex{{ 0,-3,-2 },	{.5f, 1}},
+		//Vertex{{ 3,-3,-2 },	{1, 1}},
 	};
 
 
 	std::vector<uint32_t> indices{
-		3,0,1,   1,4,3,   4,1,2,
-		2,5,4,   6,3,4,   4,7,6,
-		7,4,5,   5,8,7
+		//3,0,1,   1,4,3,   4,1,2,
+		//2,5,4,   6,3,4,   4,7,6,
+		//7,4,5,   5,8,7
 	};
 
+	Utils::ParseOBJ("./Resources/vehicle.obj", vertices, indices);
 	m_pMesh = new Mesh{ m_pDevice, vertices, indices };
 
-	m_pDiffuseTexture = Texture::LoadFromFile(m_pDevice, "./Resources/uv_grid_2.png");
+	m_pDiffuseTexture = Texture::LoadFromFile(m_pDevice, "./Resources/vehicle_diffuse.png");
 	m_pMesh->SetDiffuseMap(m_pDiffuseTexture);
 }
 
