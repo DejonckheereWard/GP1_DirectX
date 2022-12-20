@@ -23,7 +23,11 @@ Texture* Texture::LoadFromFile(ID3D11Device* pDevice, const std::string& path)
 	//Create & Return a new Texture Object (using SDL_Surface)
 	SDL_Surface* pSurface = IMG_Load(path.c_str());
 	assert(pSurface != nullptr);
-	return new Texture(pDevice, pSurface);
+	Texture* pTexture = new Texture(pDevice, pSurface);
+	
+	// Cleanup
+	SDL_FreeSurface(pSurface);
+	return pTexture;
 }
 
 Texture::Texture(ID3D11Device* pDevice, SDL_Surface* pSurface)
@@ -69,8 +73,5 @@ Texture::Texture(ID3D11Device* pDevice, SDL_Surface* pSurface)
 		std::cout << "Error creating Shader Resource View\n";
 		assert(false);
 	}
-
-	// Cleanup
-	SDL_FreeSurface(pSurface);
 
 }
