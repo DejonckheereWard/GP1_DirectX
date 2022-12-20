@@ -34,6 +34,9 @@ public:
 
 	void SetDiffuseMap(Texture* texture);
 
+	Effect* GetEffect() const { return m_pEffect; }
+	
+
 private:
 	Effect* m_pEffect;
 	ID3DX11EffectTechnique* m_pTechnique;

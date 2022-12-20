@@ -60,7 +60,7 @@ int main(int argc, char* args[])
 					//if (e.key.keysym.scancode == SDL_SCANCODE_X)
 					if(e.key.keysym.scancode == SDL_SCANCODE_F2)
 					{
-						pRenderer->ToggleFilterMethod();
+						pRenderer->CycleEffectFilter();
 					}
 
 					break;

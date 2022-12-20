@@ -2,7 +2,8 @@
 #include "Effect.h"
 #include "Texture.h"
 
-Effect::Effect(ID3D11Device* pDevice, const std::wstring& assetFile)
+Effect::Effect(ID3D11Device* pDevice, const std::wstring& assetFile):
+	m_CurrentSamplerFilter{}
 {
 	m_pEffect = LoadEffect(pDevice, assetFile);
 	m_pTechnique = m_pEffect->GetTechniqueByName("DefaultTechnique");
@@ -24,23 +25,58 @@ Effect::Effect(ID3D11Device* pDevice, const std::wstring& assetFile)
 		std::wcout << L"m_pDiffuseMapVariable is not valid!\n";
 	}
 
+	m_pEffectSamplerVariable = m_pEffect->GetVariableByName("gSampler")->AsSampler();
+	if(!m_pEffectSamplerVariable->IsValid())
+	{
+		std::wcout << L"m_pEffectSamplerState is not valid!\n";
+	}
 
+
+	// Create the different sampler states with different filtesr
+	D3D11_SAMPLER_DESC samplerDesc{};
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	samplerDesc.MaxAnisotropy = 0;
+	samplerDesc.MinLOD = 0.0f;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	
+	// Point sampler
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	HRESULT hr = pDevice->CreateSamplerState(&samplerDesc, &m_pPointSampler);
+	if(FAILED(hr))
+		std::wcout << L"Failed to create point sampler state";
+
+
+	// Linear Sampler
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	hr = pDevice->CreateSamplerState(&samplerDesc, &m_pLinearSampler);
+	if(FAILED(hr))
+		std::wcout << L"Failed to create linear sampler state";
+	
+	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	hr = pDevice->CreateSamplerState(&samplerDesc, &m_pAnisotropicSampler);
+	if(FAILED(hr))
+		std::wcout << L"Failed to create anisotropic sampler state";
+
+	m_pEffectSamplerVariable->SetSampler(0, m_pPointSampler);
 
 }
 
 Effect::~Effect()
 {
-	// Cleanup DirectX resources
+	// Cleanup DirectX resources (do it in reverse of init)
+	m_pAnisotropicSampler->Release();
+	m_pLinearSampler->Release();
+	m_pPointSampler->Release();
+
+	m_pEffectSamplerVariable->Release();
 	m_pDiffuseMapVariable->Release();
 	m_pMatWorldViewProjVariable->Release();
+	
 	m_pTechnique->Release();
 	m_pEffect->Release();
-
-	// Is this required?
-	//delete m_pDiffuseMapVariable;
-	//delete m_pMatWorldViewProjVariable;
-	//delete m_pTechnique;
-	//delete m_pEffect;	
 }
 
 
@@ -49,6 +85,27 @@ void Effect::SetDiffuseMap(Texture* pDiffuseTexture)
 	if(m_pDiffuseMapVariable)
 		m_pDiffuseMapVariable->SetResource(pDiffuseTexture->GetShaderResourceView());
 }
+
+void Effect::SetSamplerFilter(SamplerFilter filter)
+{
+	switch(filter)
+	{
+		case Effect::SamplerFilter::Point:
+			m_pEffectSamplerVariable->SetSampler(0, m_pPointSampler);
+			break;
+		case Effect::SamplerFilter::Linear:
+			m_pEffectSamplerVariable->SetSampler(0, m_pLinearSampler);
+			break;
+		case Effect::SamplerFilter::Anisotropic:
+			m_pEffectSamplerVariable->SetSampler(0, m_pAnisotropicSampler);
+			break;
+		default:
+			break;
+	}
+}
+
+
+
 
 // Static
 ID3DX11Effect* Effect::LoadEffect(ID3D11Device* pDevice, const std::wstring& assetFile)

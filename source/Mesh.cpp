@@ -116,3 +116,4 @@ void Mesh::SetDiffuseMap(Texture* texture)
 {
 	m_pEffect->SetDiffuseMap(texture);
 }
+

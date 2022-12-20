@@ -1,4 +1,5 @@
 #pragma once
+#include "Effect.h"
 
 using namespace dae;
 
@@ -29,7 +30,7 @@ public:
 	void Update(const Timer* pTimer);
 	void Render() const;
 
-	void ToggleFilterMethod();
+	void CycleEffectFilter();
 
 private:
 	SDL_Window* m_pWindow{};
@@ -57,6 +58,6 @@ private:
 	Camera* m_pCamera;
 	Texture* m_pDiffuseTexture;
 
-	FilterMethod m_FilterMethod;
+	Effect::SamplerFilter m_FilterMethod;
 
 };

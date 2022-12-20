@@ -2,15 +2,15 @@
 // -----------------------------------------------------------------
 //  Global Variables
 // -----------------------------------------------------------------
-
 float4x4 gWorldViewProj : WorldViewProjection;
 Texture2D gDiffuseMap : DiffuseMap;
-SamplerState samPoint
-{
-    Filter = MIN_MAG_MIP_POINT;
-    AddressU = Wrap;
-    AddressV = Wrap;
-};
+SamplerState gSampler;
+//SamplerState samPoint
+//{
+//    Filter = MIN_MAG_MIP_POINT;
+//    AddressU = Wrap;
+//    AddressV = Wrap;
+//};
 
 // -----------------------------------------------------------------
 //  Input/Ouput structs
@@ -46,7 +46,7 @@ VS_OUTPUT VS(VS_INPUT input)
 // -----------------------------------------------------------------
 float4 PS(VS_OUTPUT input) : SV_TARGET
 {
-    float3 color = gDiffuseMap.Sample(samPoint, input.UV).rgb;
+    float3 color = gDiffuseMap.Sample(gSampler, input.UV).rgb;
     return float4(color, 1.0f);
 }
 

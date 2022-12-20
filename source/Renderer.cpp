@@ -6,7 +6,8 @@
 
 
 Renderer::Renderer(SDL_Window* pWindow):
-	m_pWindow(pWindow)
+	m_pWindow(pWindow),
+	m_FilterMethod{ }
 {
 	//Initialize
 	SDL_GetWindowSize(pWindow, &m_Width, &m_Height);
@@ -110,26 +111,30 @@ void Renderer::Render() const
 	m_pSwapChain->Present(0, 0);
 }
 
-void Renderer::ToggleFilterMethod()
+void Renderer::CycleEffectFilter()
 {
 	// Fancy thing to toggle / go through the filtermethods 1 by 1
-	m_FilterMethod = FilterMethod((int(m_FilterMethod) + 1) % (int(FilterMethod::Anisotropic) + 1));
+	m_FilterMethod = Effect::SamplerFilter((int(m_FilterMethod) + 1) % (int(Effect::SamplerFilter::Anisotropic) + 1));
 
 	switch(m_FilterMethod)
 	{
-		case Renderer::FilterMethod::Point:
+		case Effect::SamplerFilter::Point:
 			std::wcout << "FilterMethod: Point\n";
 			break;
-		case Renderer::FilterMethod::Linear:
+		case Effect::SamplerFilter::Linear:
 			std::wcout << "FilterMethod: Linear\n";
 			break;
-		case Renderer::FilterMethod::Anisotropic:
+		case Effect::SamplerFilter::Anisotropic:
 			std::wcout << "FilterMethod: Anisotropic\n";
 			break;
 		default:
 			std::wcout << "FilterMethod: ERROR - INVALID\n";
 			break;
 	}
+	
+	// loop over every mesh and set the effect
+	m_pMesh->GetEffect()->SetSamplerFilter(m_FilterMethod);
+	
 }
 
 HRESULT Renderer::InitializeDirectX()
