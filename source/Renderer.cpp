@@ -15,7 +15,7 @@ Renderer::Renderer(SDL_Window* pWindow):
 
 	// Init camera
 	const float aspectRatio{ m_Width / (float)m_Height };
-	m_pCamera = new Camera({ 0.f, 0.f, -10.0f }, 45.0f, aspectRatio);
+	m_pCamera = new Camera({ 0.f, 0.f, -50.0f }, 45.0f, aspectRatio);
 
 	//Initialize DirectX pipeline
 	const HRESULT result = InitializeDirectX();
@@ -30,68 +30,82 @@ Renderer::Renderer(SDL_Window* pWindow):
 	}
 
 
-	// Init mesh
-	//std::vector<Vertex> vertices{
-	//	{{0.0f, 3.0f, 2.0f}, {1.f, 0.f, 0.f}},
-	//	{{3.0f, -3.0f, 2.0f}, {0.f, 0.f, 1.f}},
-	//	{{-3.0f, -3.0f, 2.0f}, {0.f, 1.f, 0.f}},
-	//};
+	m_pVehicleMaterial = new EffectVehicle{ m_pDevice, L"Resources/PosCol3D.fx" };
 
-	std::vector<Vertex> vertices{
-		//Vertex{{ -3,3,-2 }, {0, 0}},
-		//Vertex{{ 0,3,-2 },	{.5f, 0}},
-		//Vertex{{ 3,3,-2 },	{1, 0}},
-		//Vertex{{ -3,0,-2 },	{0, .5f}},
-		//Vertex{{ 0,0,-2 },	{.5f, .5f}},
-		//Vertex{{ 3,0,-2 },	{1, .5f}},
-		//Vertex{{ -3,-3,-2 },{ 0, 1 }},
-		//Vertex{{ 0,-3,-2 },	{.5f, 1}},
-		//Vertex{{ 3,-3,-2 },	{1, 1}},
-	};
+	Texture* pVehicleDiffuse = Texture::LoadFromFile(m_pDevice, "./Resources/vehicle_diffuse.png");
+	Texture* pVehicleNormal = Texture::LoadFromFile(m_pDevice, "./Resources/vehicle_normal.png");
+	Texture* pVehicleSpecular = Texture::LoadFromFile(m_pDevice, "./Resources/vehicle_specular.png");
+	Texture* pVehicleGloss = Texture::LoadFromFile(m_pDevice, "./Resources/vehicle_gloss.png");
 
+	m_pVehicleMaterial->SetDiffuseMap(pVehicleDiffuse);
+	m_pVehicleMaterial->SetNormalMap(pVehicleNormal);
+	m_pVehicleMaterial->SetSpecularMap(pVehicleSpecular);
+	m_pVehicleMaterial->SetGlossinessMap(pVehicleGloss);
 
-	std::vector<uint32_t> indices{
-		//3,0,1,   1,4,3,   4,1,2,
-		//2,5,4,   6,3,4,   4,7,6,
-		//7,4,5,   5,8,7
-	};
+	delete pVehicleDiffuse;
+	delete pVehicleNormal;
+	delete pVehicleSpecular;
+	delete pVehicleGloss;
+
+	std::vector<Vertex> vertices{};
+	std::vector<uint32_t> indices{};
 
 	Utils::ParseOBJ("./Resources/vehicle.obj", vertices, indices);
-	m_pMesh = new Mesh{ m_pDevice, vertices, indices };
+	Mesh* pMesh = m_MeshPtrs.emplace_back(new Mesh{ m_pDevice, m_pVehicleMaterial, vertices, indices });
 
-	m_pDiffuseTexture = Texture::LoadFromFile(m_pDevice, "./Resources/vehicle_diffuse.png");
-	m_pMesh->SetDiffuseMap(m_pDiffuseTexture);
+	m_pFireMaterial = new EffectFire{ m_pDevice, L"Resources/ShaderTransparent.fx" };
+	Texture* pFireDiffuse = Texture::LoadFromFile(m_pDevice, "./Resources/fireFX_diffuse.png");
+	m_pFireMaterial->SetDiffuseMap(pFireDiffuse);
+	delete pFireDiffuse;
+
+
+	Utils::ParseOBJ("./Resources/fireFX.obj", vertices, indices);
+	pMesh = m_MeshPtrs.emplace_back(new Mesh{ m_pDevice, m_pFireMaterial, vertices, indices });
+
 }
 
 Renderer::~Renderer()
 {
 	if(m_pDeviceContext)
 	{
-		m_pRenderTargetView->Release();
-		m_pRenderTargetBuffer->Release();
+		delete m_pVehicleMaterial;
+		delete m_pFireMaterial;
 
-		m_pDepthStencilView->Release();
-		m_pDepthStencilBuffer->Release();
+		SafeRelease(m_pRenderTargetView);
+		SafeRelease(m_pRenderTargetBuffer);
 
-		m_pSwapChain->Release();
+		SafeRelease(m_pDepthStencilView);
+		SafeRelease(m_pDepthStencilBuffer);
+
+		SafeRelease(m_pSwapChain);
+
 
 		m_pDeviceContext->ClearState();
 		m_pDeviceContext->Flush();
 		m_pDeviceContext->Release();
 
-		m_pDevice->Release();
+		SafeRelease(m_pDevice);
 
-		delete m_pMesh;
+		for(Mesh* pMesh : m_MeshPtrs)
+		{
+			delete pMesh;
+		}
 	}
 
 	delete m_pCamera;
-	delete m_pDiffuseTexture;
-
 }
 
 void Renderer::Update(const Timer* pTimer)
 {
 	m_pCamera->Update(pTimer);
+
+	Matrix rotation = Matrix::CreateRotationY(PI_DIV_4 * pTimer->GetElapsed());
+
+	for(Mesh* pMesh : m_MeshPtrs)
+	{
+		pMesh->SetWorldMatrix(pMesh->GetWorldMatrix() * rotation);
+	}
+
 }
 
 
@@ -101,13 +115,16 @@ void Renderer::Render() const
 		return;
 
 	//1. CLEAR RTV & DSV
-	ColorRGB clearColor = ColorRGB{ 0.f, 0.f, 0.3f };
+	ColorRGB clearColor = ColorRGB{ 0.3f, 0.3f, 0.3f };
 	m_pDeviceContext->ClearRenderTargetView(m_pRenderTargetView, &clearColor.r);
 	m_pDeviceContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.f, 0);
 
 	// 2. SET PIPELINE + INVOKE DRAWCALLS (= RENDER)
-	Matrix worldViewProjectionMatrix{ m_pCamera->GetViewMatrix() * m_pCamera->GetProjectionMatrix() };
-	m_pMesh->Render(m_pDeviceContext, worldViewProjectionMatrix);
+	for(Mesh* pMesh : m_MeshPtrs)
+	{
+		Matrix worldViewProjectionMatrix{ pMesh->GetWorldMatrix() * m_pCamera->GetViewMatrix() * m_pCamera->GetProjectionMatrix() };
+		pMesh->Render(m_pDeviceContext, worldViewProjectionMatrix, m_pCamera->GetInverseViewMatrix());
+	}
 
 	// SWAP THE BACKBUFFER / PRESENT
 	m_pSwapChain->Present(0, 0);
@@ -116,27 +133,31 @@ void Renderer::Render() const
 void Renderer::CycleEffectFilter()
 {
 	// Fancy thing to toggle / go through the filtermethods 1 by 1
-	m_FilterMethod = Effect::SamplerFilter((int(m_FilterMethod) + 1) % (int(Effect::SamplerFilter::Anisotropic) + 1));
+	m_FilterMethod = EffectVehicle::SamplerFilter((int(m_FilterMethod) + 1) % (int(EffectVehicle::SamplerFilter::Anisotropic) + 1));
 
 	switch(m_FilterMethod)
 	{
-		case Effect::SamplerFilter::Point:
+		case EffectVehicle::SamplerFilter::Point:
 			std::wcout << "FilterMethod: Point\n";
 			break;
-		case Effect::SamplerFilter::Linear:
+		case EffectVehicle::SamplerFilter::Linear:
 			std::wcout << "FilterMethod: Linear\n";
 			break;
-		case Effect::SamplerFilter::Anisotropic:
+		case EffectVehicle::SamplerFilter::Anisotropic:
 			std::wcout << "FilterMethod: Anisotropic\n";
 			break;
 		default:
 			std::wcout << "FilterMethod: ERROR - INVALID\n";
 			break;
 	}
-	
+
 	// loop over every mesh and set the effect
-	m_pMesh->GetEffect()->SetSamplerFilter(m_FilterMethod);
-	
+	for(Mesh* pMesh : m_MeshPtrs)
+	{
+		pMesh->GetEffect()->SetSamplerFilter(m_FilterMethod);
+	}
+
+
 }
 
 HRESULT Renderer::InitializeDirectX()

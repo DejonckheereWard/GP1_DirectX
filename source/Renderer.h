@@ -1,5 +1,7 @@
 #pragma once
 #include "Effect.h"
+#include "EffectVehicle.h"
+#include "EffectFire.h"
 
 using namespace dae;
 
@@ -54,10 +56,14 @@ private:
 	ID3D11Texture2D* m_pRenderTargetBuffer;
 	ID3D11RenderTargetView* m_pRenderTargetView;
 
-	Mesh* m_pMesh;
-	Camera* m_pCamera;
-	Texture* m_pDiffuseTexture;
+	std::vector<Mesh*> m_MeshPtrs;
 
-	Effect::SamplerFilter m_FilterMethod;
+	Camera* m_pCamera;
+
+	EffectVehicle* m_pVehicleMaterial;
+	EffectFire* m_pFireMaterial;
+
+
+	EffectVehicle::SamplerFilter m_FilterMethod;
 
 };

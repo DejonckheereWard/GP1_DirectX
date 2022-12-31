@@ -1,30 +1,39 @@
 #include "pch.h"
 #include "Mesh.h"
-#include "Effect.h"
+#include "EffectVehicle.h"
 #include <cassert>
 
-Mesh::Mesh(ID3D11Device* pDevice, const std::vector<Vertex>& vertices, const std::vector<uint32_t> indices)
+Mesh::Mesh(ID3D11Device* pDevice, Effect* pEffect, const std::vector<Vertex>& vertices, const std::vector<uint32_t> indices)
 {
 	// Create an instance of the effect class
-	m_pEffect = new Effect(pDevice, L"Resources/PosCol3D.fx");
+	m_pEffect = pEffect;
+	//m_pEffect = new Effect(pDevice, L"Resources/PosCol3D.fx");
 	m_pTechnique = m_pEffect->GetTechnique();
 
 
 	// Create vertex layout
-	static constexpr uint32_t numElements{ 2 };
+	static constexpr uint32_t numElements{ 4 };
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[numElements]{};
 
-	vertexDesc[0].SemanticName = "POSITION";
-	vertexDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	vertexDesc[0].AlignedByteOffset = 0;
+	vertexDesc[0].SemanticName = "POSITION";						// VERT POSITION
+	vertexDesc[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// VECTOR 3
+	vertexDesc[0].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT; // AUTO ALIGN WITH LAST BYTE
 	vertexDesc[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
-	vertexDesc[1].SemanticName = "TEXCOORD";
-	vertexDesc[1].Format = DXGI_FORMAT_R32G32_FLOAT;
-	vertexDesc[1].AlignedByteOffset = 12;
+	vertexDesc[1].SemanticName = "NORMAL";							// NORMAL
+	vertexDesc[1].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// VECTOR 3
+	vertexDesc[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT; // AUTO ALIGN WITH LAST BYTE
 	vertexDesc[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
+	vertexDesc[2].SemanticName = "TANGENT";							// TANGENT
+	vertexDesc[2].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// VECTOR 3
+	vertexDesc[2].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT; // AUTO ALIGN WITH LAST BYTE
+	vertexDesc[2].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
+	vertexDesc[3].SemanticName = "TEXCOORD";						// UV
+	vertexDesc[3].Format = DXGI_FORMAT_R32G32_FLOAT;				// VECTOR 2
+	vertexDesc[3].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT; // AUTO ALIGN WITH LAST BYTE
+	vertexDesc[3].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 
 	// Create input layout
 	D3DX11_PASS_DESC passDesc{};
@@ -80,10 +89,9 @@ Mesh::~Mesh()
 	m_pVertexBuffer->Release();
 	m_pIndexBuffer->Release();
 	m_pInputLayout->Release();
-	delete m_pEffect;
 }
 
-void Mesh::Render(ID3D11DeviceContext* pDeviceContext, Matrix& worldViewProjMatrix)
+void Mesh::Render(ID3D11DeviceContext* pDeviceContext, Matrix worldViewProjMatrix, Matrix viewInverseMatrix)
 {
 	// 1. Set Primitive Topolgy
 	pDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -101,7 +109,10 @@ void Mesh::Render(ID3D11DeviceContext* pDeviceContext, Matrix& worldViewProjMatr
 
 	// 5. Draw
 	// We reinterpret the pointer, not the object itself?
-	m_pEffect->GetMatrixVariable()->SetMatrix(reinterpret_cast<float*>(&worldViewProjMatrix));
+	m_pEffect->GetWorldViewProjVariable()->SetMatrix(reinterpret_cast<float*>(&worldViewProjMatrix));
+	Matrix worldMatrix(GetWorldMatrix());
+	m_pEffect->GetWorldMatrixVariable()->SetMatrix(reinterpret_cast<float*>(&worldMatrix));
+	m_pEffect->GetViewInverseMatrixVariable()->SetMatrix(reinterpret_cast<float*>(&viewInverseMatrix));
 
 	D3DX11_TECHNIQUE_DESC techDesc{};
 	m_pTechnique->GetDesc(&techDesc);
@@ -111,9 +122,3 @@ void Mesh::Render(ID3D11DeviceContext* pDeviceContext, Matrix& worldViewProjMatr
 		pDeviceContext->DrawIndexed(m_NumIndices, 0, 0);
 	}
 }
-
-void Mesh::SetDiffuseMap(Texture* texture)
-{
-	m_pEffect->SetDiffuseMap(texture);
-}
-

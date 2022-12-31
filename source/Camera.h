@@ -31,6 +31,7 @@ public:
 
 
 	Matrix GetViewMatrix() const { return m_ViewMatrix; };
+	Matrix GetInverseViewMatrix() const { return Matrix::Inverse(m_ViewMatrix); };
 	Matrix GetProjectionMatrix() const { return m_ProjectionMatrix; };
 
 private:
