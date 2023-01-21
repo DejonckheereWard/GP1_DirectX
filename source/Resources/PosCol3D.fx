@@ -12,7 +12,7 @@ float3 gLightColor : LightColor = float3(1.0f, 1.0f, 1.0f);
 float gLightIntensity : LightIntensity = 7.0f;
 float gShininess : Shininess = 250.0f;
 
-float gAmbientColor : Shininess = float3(0.025f, 0.025f, 0.025f);
+float3 gAmbientColor : Shininess = float3(0.025f, 0.025f, 0.025f);
 
 float4x4 gWorldMatrix : WORLD;
 float4x4 gViewInverse : VIEWINVERSE;

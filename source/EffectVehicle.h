@@ -1,7 +1,6 @@
 #pragma once
 #include "Matrix.h"
 #include "Effect.h"
-#include <concepts>
 
 class Texture;
 
